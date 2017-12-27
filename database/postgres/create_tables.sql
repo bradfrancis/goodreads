@@ -1,0 +1,69 @@
+CREATE SCHEMA IF NOT EXISTS Staging;
+
+DROP TABLE IF EXISTS Staging.NovelList;
+
+CREATE TABLE Staging.NovelList
+(
+    id SERIAL PRIMARY KEY,
+    raw_data JSON,
+    inserted_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+);
+
+CREATE SCHEMA IF NOT EXISTS dbo;
+
+DROP TABLE IF EXISTS dbo.Novel;
+DROP TABLE IF EXISTS dbo.Author;
+DROP TABLE IF EXISTS dbo.Cover;
+
+CREATE TABLE dbo.Author
+(
+    author_id SERIAL NOT NULL,
+    author_name varchar(150) NOT NULL,
+    created TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+    modified TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+    CONSTRAINT PK_AuthorID PRIMARY KEY (author_id),
+    CONSTRAINT AK_AuthorName UNIQUE (author_name)
+);
+
+CREATE TABLE dbo.Cover
+(
+    cover_id SERIAL NOT NULL,
+    image_url varchar(500) NOT NULL,
+    image_data bytea NULL,
+    created TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+    modified TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+    CONSTRAINT PK_CoverID PRIMARY KEY (cover_id),
+    CONSTRAINT AK_ImageURL UNIQUE (image_url)
+);
+
+CREATE TABLE dbo.RatingInfo
+(
+    ratinginfo_id SERIAL NOT NULL,
+    avg_rating NUMERIC(3,2) NULL DEFAULT 0.00,
+    total_ratings BIGINT NULL DEFAULT 0,
+    created TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+    modified TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+    CONSTRAINT PK_RatingInfoID PRIMARY KEY (ratinginfo_id)
+);
+
+CREATE TABLE dbo.Novel
+(
+    novel_id SERIAL NOT NULL,
+    title varchar(250) NOT NULL,
+    list_number smallint NOT NULL, 
+    previous_list_number smallint NULL,
+    author_id INTEGER NOT NULL,
+    cover_id INTEGER NULL,
+    ratinginfo_id INTEGER NULL,
+    started_reading TIMESTAMP WITHOUT TIME ZONE NULL,
+    finished_reading TIMESTAMP WITHOUT TIME ZONE NULL,
+    created TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+    modified TIMESTAMP WITHOUT TIME ZONE DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
+    CONSTRAINT PK_NovelID PRIMARY KEY (novel_id),
+    CONSTRAINT FK_Author_AuthorID FOREIGN KEY (author_id) REFERENCES dbo.Author(author_id),
+    CONSTRAINT FK_Cover_CoverID FOREIGN KEY (cover_id) REFERENCES dbo.Cover(cover_id),
+    CONSTRAINT FK_RatingInfo_RatingInfoID FOREIGN KEY (ratinginfo_id) REFERENCES dbo.RatingInfo(ratinginfo_id)
+);
+
+
+
