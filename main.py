@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from bs4 import BeautifulSoup
 from base64 import b64encode
 from collections import namedtuple
