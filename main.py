@@ -3,9 +3,15 @@
 from bs4 import BeautifulSoup
 from base64 import b64encode
 from collections import namedtuple
+from math import ceil
+from time import time
+from os.path import join as path_join
 
+from config import config
+
+import database
 import requests
-import os
+#import os
 import zlib
 import json
 import string
@@ -179,22 +185,65 @@ def scrape_list(list_url):
 def run(list_urls):
     lists = {}
     lists['lists'] = [scrape_list(url) for url in list_urls]
-
+    
     if len(lists['lists']) > 0:
         try:
-          with open(OUTPUT_FILE, 'w') as fp:
-              json.dump(lists, fp, indent=2)
-        except Exception as e:
-          print("ERROR: An error occurred while writing results to {0} -- {1}".format(OUTPUT_FILE, e))
-            
+            #write_lists_to_db(lists)
+            database.load_lists(json.dumps(lists))
+        except:
+            write_lists_to_file(lists)
+          
+
+def generate_filename():
+    folder_root="json_dumps"
+    file_name = "json_dump-{0}.json".format(ceil(time()))
+    path = path_join(folder_root, file_name)
+
+    return path
+
+# '''Read configuration settings from a file'''
+# def load_config(file_name='config.json'):
+#     config = None
+    
+#     try:
+#         with open(file_name, 'r') as fp:
+#             config = json.load(fp)
+#     except:
+#         print("ERROR: Could not read configuration settings file. Reverting to defaults.")
+#         config = config_defaults
+#     finally:
+#         return config
+
+
+def write_lists_to_file(lists):
+    out_file = generate_filename()
+    try:
+        with open(out_file, 'w') as fp:
+            json.dump(lists, fp, indent=2)
+    except Exception as e:
+        print("ERROR: An error occurred while writing results to {0} -- {1}".format(outfile, e))
+
+
+# def write_lists_to_db(lists):
+#     pass
+
 
 URL1="https://www.goodreads.com/list/show/2681.Time_Magazine_s_All_Time_100_Novels"
 URL2="https://www.goodreads.com/list/show/13086.Goodreads_Top_100_Literary_Novels_of_all_time"
-OUTPUT_FILE = 'lists.json'
+#OUTPUT_FILE = 'lists.json'
+config_defaults = {
+    'database': {
+        "host" : "localhost",
+        "port" : 5432,
+        "db_name" : "postgres",
+        "username": "postgres",
+        "password" : "postgres"
+    }
+}
 
-class ReturnObject(namedtuple('ReturnObject', ['data', 'err'])):
-    def __new__(cls, data, err=None):
-        return super(ReturnObject, cls).__new__(cls, data, err)
+# class ReturnObject(namedtuple('ReturnObject', ['data', 'err'])):
+#     def __new__(cls, data, err=None):
+#         return super(ReturnObject, cls).__new__(cls, data, err)
 
 if __name__ == '__main__':
     run([URL1, URL2])
