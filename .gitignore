@@ -1,5 +1,7 @@
 config.json
 database.ini
-json_dumps/*
+json_dumps/
 .vscode/
 __pycache__
+.python_version
+.DS_Store
